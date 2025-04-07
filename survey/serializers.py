@@ -45,24 +45,28 @@ class CertificateSerializer(serializers.ModelSerializer):
         return value
 
 class ResponseSerializer(serializers.ModelSerializer):
-    certificates = CertificateSerializer(many=True, required=False)
-    
+    certificates = serializers.ListField(
+        child=serializers.FileField(), required=False, write_only=True
+    )
+
     class Meta:
         model = Response
         fields = ['id', 'full_name', 'email_address', 'description', 'gender', 
-                 'programming_stack', 'certificates', 'date_responded']
+                  'programming_stack', 'certificates', 'date_responded']
         read_only_fields = ['id', 'date_responded']
-    
+
+    def validate_certificates(self, value):
+        for file in value:
+            ext = os.path.splitext(file.name)[1].lower()
+            if ext != '.pdf':
+                raise ValidationError("Only PDF files are allowed.")
+        return value
+
     def create(self, validated_data):
-        """
-        Overriding the create method to handle nested certificates data
-        """
-        certificates_data = validated_data.pop('certificates', [])
+        certificates = validated_data.pop('certificates', [])
         response = Response.objects.create(**validated_data)
-        
-        for cert_data in certificates_data:
-            Certificate.objects.create(response=response, **cert_data)
-        
+        for cert in certificates:
+            Certificate.objects.create(response=response, file=cert)
         return response
 
 class CertificateUploadSerializer(serializers.Serializer):
