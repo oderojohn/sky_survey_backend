@@ -1,9 +1,11 @@
+from rest_framework import filters
 from rest_framework import viewsets, generics, status
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import AllowAny
 from django.http import FileResponse
 from django_filters.rest_framework import DjangoFilterBackend
+
 
 from .models import Question, Response as SurveyResponse, Certificate
 from .serializers import (
@@ -32,16 +34,19 @@ class QuestionViewSet(viewsets.ReadOnlyModelViewSet):
 class ResponseViewSet(viewsets.ModelViewSet):
     queryset = SurveyResponse.objects.prefetch_related('certificates').all()
     serializer_class = ResponseSerializer
-    parser_classes = (MultiPartParser, FormParser)  # This is important for handling file uploads
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['email_address']
+    parser_classes = (MultiPartParser, FormParser)
     permission_classes = [AllowAny]
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        email = self.request.query_params.get('email_address')
+        if email:
+            queryset = queryset.filter(email_address__icontains=email)
+        return queryset
 
     def list(self, request, *args, **kwargs):
-        """
-        Custom list view that supports pagination and filters
-        """
         queryset = self.filter_queryset(self.get_queryset())
+
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -49,37 +54,6 @@ class ResponseViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response({'question_responses': serializer.data})
-
-    def update(self, request, *args, **kwargs):
-        """
-        Custom update view to handle both updating SurveyResponse and related certificates
-        """
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()  # Get the instance by its primary key
-
-        # Extract certificates data and remove it from the request data
-        certificates_data = request.data.get('certificates', None)
-        request.data.pop('certificates', None)  # Remove certificates to handle them separately
-
-        # Update the SurveyResponse fields
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-
-        # Handle certificates update if certificates_data exists
-        if certificates_data is not None:
-            instance.certificates.all().delete()  # Remove existing certificates (if updating)
-            for cert_data in certificates_data:
-                Certificate.objects.create(response=instance, **cert_data)
-
-        return Response({'question_response': serializer.data}, status=status.HTTP_200_OK)
-
-    def partial_update(self, request, *args, **kwargs):
-        """
-        Handle partial updates (i.e., only update part of the resource)
-        """
-        kwargs['partial'] = True
-        return self.update(request, *args, **kwargs)
 
 # 🔵 Upload certificates linked to responses
 class CertificateUploadView(generics.CreateAPIView):
