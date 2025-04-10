@@ -93,7 +93,7 @@ WSGI_APPLICATION = 'sky_survey_api.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': BASE_DIR / "sky_survey_db.sqlite3",
     }
 }
 

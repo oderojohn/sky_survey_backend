@@ -97,3 +97,49 @@ class CertificateDownloadView(generics.RetrieveAPIView):
         response['Content-Length'] = certificate.file.size
         response['Content-Disposition'] = f'attachment; filename="{os.path.basename(certificate.file.name)}"'
         return response
+
+
+
+from io import BytesIO
+from zipfile import ZipFile
+from django.utils.text import slugify
+
+class CertificateBatchDownloadView(generics.GenericAPIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        response_id = request.query_params.get('response_id')
+        if not response_id:
+            return Response({'error': 'response_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            response_instance = SurveyResponse.objects.get(id=response_id)
+        except SurveyResponse.DoesNotExist:
+            return Response({'error': 'Response not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        certificates = response_instance.certificates.all()
+        pdf_files = [cert for cert in certificates if cert.file.name.lower().endswith('.pdf')]
+
+        if not pdf_files:
+            return Response({'error': 'No PDF certificates found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if len(pdf_files) == 1:
+            cert = pdf_files[0]
+            file_handle = cert.file.open()
+            response = FileResponse(file_handle, content_type='application/pdf')
+            response['Content-Length'] = cert.file.size
+            response['Content-Disposition'] = f'attachment; filename="{os.path.basename(cert.file.name)}"'
+            return response
+
+        # Multiple files → zip them
+        buffer = BytesIO()
+        with ZipFile(buffer, 'w') as zip_archive:
+            for cert in pdf_files:
+                filename = os.path.basename(cert.file.name)
+                zip_archive.writestr(filename, cert.file.read())
+
+        buffer.seek(0)
+        zip_filename = f"certificates_{slugify(response_instance.email_address)}.zip"
+        zip_response = FileResponse(buffer, content_type='application/zip')
+        zip_response['Content-Disposition'] = f'attachment; filename="{zip_filename}"'
+        return zip_response

@@ -4,7 +4,8 @@ from .views import (
     QuestionViewSet,
     ResponseViewSet,
     CertificateUploadView,
-    CertificateDownloadView
+    CertificateDownloadView,
+    CertificateBatchDownloadView
 )
 
 router = DefaultRouter()
@@ -15,4 +16,6 @@ urlpatterns = [
     path('', include(router.urls)),
     path('upload-certificate/', CertificateUploadView.as_view(), name='upload-certificate'),
     path('download-certificate/<int:pk>/', CertificateDownloadView.as_view(), name='download-certificate'),
+    path('certificates/download/', CertificateBatchDownloadView.as_view(), name='certificates-download'),
+
 ]
