@@ -5,6 +5,9 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import AllowAny
 from django.http import FileResponse
 from django_filters.rest_framework import DjangoFilterBackend
+from io import BytesIO
+from zipfile import ZipFile
+from django.utils.text import slugify
 
 
 from .models import Question, Response as SurveyResponse, Certificate
@@ -30,7 +33,7 @@ class QuestionViewSet(viewsets.ReadOnlyModelViewSet):
         return Response({'questions': serializer.data})
 
 
-# 🟡 Full CRUD for responses (mostly POST and GET with filtering by email)
+#  Full CRUD for responses (mostly POST and GET with filtering by email)
 class ResponseViewSet(viewsets.ModelViewSet):
     queryset = SurveyResponse.objects.prefetch_related('certificates').all()
     serializer_class = ResponseSerializer
@@ -100,9 +103,7 @@ class CertificateDownloadView(generics.RetrieveAPIView):
 
 
 
-from io import BytesIO
-from zipfile import ZipFile
-from django.utils.text import slugify
+
 
 class CertificateBatchDownloadView(generics.GenericAPIView):
     permission_classes = [AllowAny]
