@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     QuestionViewSet,
     ResponseViewSet,
-    CertificateUploadView,
+    # CertificateUploadView,
     CertificateDownloadView,
     CertificateBatchDownloadView
 )
@@ -14,7 +14,7 @@ router.register(r'responses', ResponseViewSet, basename='response')
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('upload-certificate/', CertificateUploadView.as_view(), name='upload-certificate'),
+    # path('upload-certificate/', CertificateUploadView.as_view(), name='upload-certificate'),
     path('download-certificate/<int:pk>/', CertificateDownloadView.as_view(), name='download-certificate'),
     path('certificates/download/', CertificateBatchDownloadView.as_view(), name='certificates-download'),
 
