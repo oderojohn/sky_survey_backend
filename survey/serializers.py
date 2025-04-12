@@ -30,15 +30,17 @@ class QuestionSerializer(serializers.ModelSerializer):
         return data
 
 class CertificateSerializer(serializers.ModelSerializer):
+    file_name = serializers.SerializerMethodField()
+
     class Meta:
         model = Certificate
-        fields = ['id', 'file']
-        read_only_fields = ['id']
+        fields = ['id', 'file', 'file_name']
+        read_only_fields = ['id', 'file_name']
+
+    def get_file_name(self, obj):
+        return os.path.basename(obj.file.name)
 
     def validate_file(self, value):
-        """
-        Custom validation to ensure that only PDF files are allowed for certificates
-        """
         ext = os.path.splitext(value.name)[1]
         if ext.lower() != '.pdf':
             raise ValidationError("Only PDF files are allowed.")
