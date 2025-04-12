@@ -48,12 +48,13 @@ class ResponseSerializer(serializers.ModelSerializer):
     certificates = serializers.ListField(
         child=serializers.FileField(), required=False, write_only=True
     )
+    certificate_files = CertificateSerializer(source='certificate_set', many=True, read_only=True)
 
     class Meta:
         model = Response
         fields = ['id', 'full_name', 'email_address', 'description', 'gender', 
-                  'programming_stack', 'certificates', 'date_responded']
-        read_only_fields = ['id', 'date_responded']
+                  'programming_stack', 'certificates', 'certificate_files', 'date_responded']
+        read_only_fields = ['id', 'date_responded', 'certificate_files']
 
     def validate_certificates(self, value):
         for file in value:
