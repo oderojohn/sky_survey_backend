@@ -1,3 +1,77 @@
+# Survey Application
+
+##  Setup & Run Locally
+
+###  Backend (REST API)
+
+1. **Clone the backend repository**
+   ```bash
+   git clone https://github.com/oderojohn/sky_survey_backend.git
+   cd survey-api
+   ```
+
+2. **Create and activate a virtual environment (recommended)**
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+   ```
+
+3. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Apply migrations and start the server**
+   ```bash
+   python manage.py migrate
+   python manage.py runserver
+   ```
+
+   The backend should now be running at [http://localhost:8000](http://localhost:8000)
+
+---
+
+### 💻 Frontend (React)
+
+1. **Clone the frontend repository**
+   ```bash
+   git clone https://github.com/oderojohn/simple-survey-client.git
+   cd survey-frontend
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   npm install sweetallerts
+   ```
+
+3. **Run the development server**
+   ```bash
+   npm run dev
+   ```
+   Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+---
+
+## 📦 Deployment (Optional)
+
+### Backend ( Render)
+1. Push your backend code to GitHub.
+2. Connect your GitHub repo to a deployment platform ( Render).
+3. Set necessary environment variables (e.g. `SECRET_KEY`, `DEBUG`, DB settings).
+4. Run initial migration and start server.
+
+### Frontend ( Netlify)
+1. Push frontend code to GitHub.
+2. Connect the repo to Netlify.
+3. Set environment variable `simple-survey-client.netilify.app` to your backend URL.
+4. Deploy and access the frontend live.
+
+---
+
+##  Postman Collection JSON
+
+```json
 {
   "info": {
     "name": "Survey API",
@@ -88,10 +162,12 @@
           "port": "8000",
           "path": ["api", "certificates", "batch-download"],
           "query": [
-          { "key": "response_id", "value": "1" }
+            { "key": "response_id", "value": "1" }
           ]
         }
       }
     }
   ]
 }
+```
+
